@@ -1,4 +1,4 @@
-﻿//#define COSMOSDEBUG
+//#define COSMOSDEBUG
 using System;
 using System.Collections.Generic;
 
@@ -85,6 +85,8 @@ namespace Cosmos.System.Graphics
         public abstract void DrawPoint(Pen pen, int x, int y);
 
         public abstract void DrawPoint(Pen pen, float x, float y);
+        
+        public abstract Color GetPointColor(int x, int y);
 
         private void DrawHorizontalLine(Pen pen, int dx, int x1, int y1)
         {
