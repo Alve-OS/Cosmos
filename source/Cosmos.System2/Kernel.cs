@@ -47,7 +47,7 @@ namespace Cosmos.System
             try
             {
                 HAL.Global.logs.Add("Aura Operating System v0.4.3 - Created by Valentin Charbonnier and Alexy Da Cruz");
-                HAL.Global.logs.Add("[Info]  Starting Cosmos kernel..");
+                HAL.Global.logs.Add("[Info] Starting Cosmos kernel..");
                 Global.mDebugger.Send("Starting kernel");
                 if (mStarted)
                 {
