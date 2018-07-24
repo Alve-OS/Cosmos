@@ -1,11 +1,12 @@
 using System;
-using System.Threading;
 using System.Collections.Generic;
+
 using Cosmos.Core;
 using Cosmos.Debug.Kernel;
 using Cosmos.HAL.BlockDevice;
 
 namespace Cosmos.HAL
+<<<<<<< HEAD
   {
     public static class Global
     {
@@ -27,11 +28,24 @@ namespace Cosmos.HAL
         //TODO: Since this is FCL, its "common". Otherwise it should be
         // system level and not accessible from Core. Need to think about this
         // for the future.
+=======
+{
+    public static class Global
+    {
+        public static readonly Debugger mDebugger = new Debugger("HAL", "Global");
+
+        static public PIT PIT = new PIT();
+        // Must be static init, other static inits rely on it not being null
+
+        public static TextScreenBase TextScreen = new TextScreen();
+        public static PCI Pci;
+>>>>>>> parent of e17cf7839... Merge pull request #40 from Og-Rok/OgRok-Multitasking
 
         public static readonly PS2Controller PS2Controller = new PS2Controller();
 
         static public void Init(TextScreenBase textScreen)
         {
+<<<<<<< HEAD
           if (textScreen != null)
           {
               TextScreen = textScreen;
@@ -56,6 +70,29 @@ namespace Cosmos.HAL
           Core.Processing.ProcessorScheduler.Initialize();
 
           mDebugger.Send("Done initializing Cosmos.HAL.Global");
+=======
+            if (textScreen != null)
+            {
+                TextScreen = textScreen;
+            }
+
+            mDebugger.Send("Before Core.Global.Init");
+            Core.Global.Init();
+
+            //TODO Redo this - Global init should be other.
+            // Move PCI detection to hardware? Or leave it in core? Is Core PC specific, or deeper?
+            // If we let hardware do it, we need to protect it from being used by System.
+            // Probably belongs in hardware, and core is more specific stuff like CPU, memory, etc.
+            //Core.PCI.OnPCIDeviceFound = PCIDeviceFound;
+
+            //TODO: Since this is FCL, its "common". Otherwise it should be
+            // system level and not accessible from Core. Need to think about this
+            // for the future.
+
+            Console.WriteLine("Finding PCI Devices");
+            mDebugger.Send("PCI Devices");
+            PCI.Setup();
+>>>>>>> parent of e17cf7839... Merge pull request #40 from Og-Rok/OgRok-Multitasking
 
           Console.WriteLine("Starting ACPI");
           mDebugger.Send("ACPI Init");
@@ -71,6 +108,7 @@ namespace Cosmos.HAL
           AHCI.InitDriver();
           //EHCI.InitDriver();
 
+<<<<<<< HEAD
         }
 
         public static void EnableInterrupts()
@@ -83,6 +121,15 @@ namespace Cosmos.HAL
         public static uint SpawnThread(ThreadStart aStart)
         {
           return Core.Processing.ProcessContext.StartContext("", aStart, Core.Processing.ProcessContext.Context_Type.THREAD);
+=======
+            mDebugger.Send("Done initializing Cosmos.HAL.Global");
+
+        }
+
+        public static void EnableInterrupts()
+        {
+            CPU.EnableInterrupts();
+>>>>>>> parent of e17cf7839... Merge pull request #40 from Og-Rok/OgRok-Multitasking
         }
 
         public static uint SpawnThread(ParameterizedThreadStart aStart, object param)
