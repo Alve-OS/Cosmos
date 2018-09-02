@@ -13,13 +13,4 @@
         <EmbeddedResource Update="Form1.resx" DependentUpon="Form1.cs" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Reference Include="Microsoft.CSharp" />
-        <Reference Include="PresentationCore" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\Users\Orvid\Orvid.Graphics\Orvid.Graphics.csproj" />
-    </ItemGroup>
-
 </Project>
