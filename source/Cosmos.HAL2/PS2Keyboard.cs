@@ -99,7 +99,7 @@ namespace Cosmos.HAL
         private byte GetScanCodeSet()
         {
             SendCommand(Command.GetOrSetScanCodeSet, 0);
-            return mPS2Controller.ReadByteAfterAck();
+            return mPS2Controller.Read();
         }
 
         /// <summary>
@@ -120,40 +120,7 @@ namespace Cosmos.HAL
             }
         }
 
-        private void SendCommand(Command aCommand, byte? aByte = null)
-        {
-            mDebugger.SendInternal("(PS/2 Keyboard) Sending command:");
-            mDebugger.SendInternal("Command:");
-            mDebugger.SendInternal((byte)aCommand);
-
-            if (mPS2Port == 2)
-            {
-                mPS2Controller.PrepareSecondPortWrite();
-            }
-
-            mPS2Controller.WaitToWrite();
-            IO.Data.Byte = (byte)aCommand;
-
-            mPS2Controller.WaitForAck();
-
-            mDebugger.SendInternal("Command sent.");
-
-            if (aByte.HasValue)
-            {
-                mDebugger.SendInternal("(PS/2 Keyboard) Sending byte after command:");
-                mDebugger.SendInternal("Byte value:");
-                mDebugger.SendInternal(aByte.Value);
-
-                if (mPS2Port == 2)
-                {
-                    mPS2Controller.PrepareSecondPortWrite();
-                }
-
-                mPS2Controller.WaitToWrite();
-                IO.Data.Byte = aByte.Value;
-
-                mPS2Controller.WaitForAck();
-            }
-        }
+        private void SendCommand(Command aCommand, byte? aByte = null) =>
+            mPS2Controller.SendDeviceCommand((byte)aCommand, mPS2Port == 2, aByte);
     }
 }
