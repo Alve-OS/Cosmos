@@ -82,8 +82,7 @@ namespace Cosmos.HAL
         private const byte Ack = 0xFA;
         private const byte Nak = 0xFE;
 
-        private const uint ReadTimeout = 1000;
-        private const uint WaitTimeout = 100000;
+        private const uint WaitTimeout = 1000;
 
         private Status CurrentStatus => (Status)IO.Status.Byte;
 
@@ -326,7 +325,11 @@ namespace Cosmos.HAL
                     SendCommand(Command.TestSecondPS2Port);
                 }
 
-                var xTestByte = Read();
+                if (!TryRead(out var xTestByte))
+                {
+                    mDebugger.SendInternal("(PS/2 Controller) (Port " + aPort + ") Device test failed: no response received!");
+                    return false;
+                }
 
                 if (xTestByte == 0x00)
                 {
@@ -405,25 +408,21 @@ namespace Cosmos.HAL
             SendCommand(Command.SetConfigurationByte, (byte)aConfiguration);
 
         /// <summary>
-        /// Waits for the acknowledgement byte (0xFA). Returns false if the timeout expires, true otherwise.
+        /// Waits for the acknowledgment byte (0xFA). Returns false if the timeout expires, true otherwise.
         /// </summary>
         /// <returns>Returns false if the timeout expires, true otherwise.</returns>
         public bool WaitForAck()
         {
-            int i = 0;
-
-            while (IO.Data.Byte != Ack)
+            for (int i = 0; i <= WaitTimeout; i++)
             {
-                i++;
-
-                if (i >= WaitTimeout)
+                if (IO.Data.Byte == Ack)
                 {
-                    mDebugger.SendInternal("(PS/2 Controller) Timeout expired in PS2Controller.WaitForAck()");
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            mDebugger.SendInternal("(PS/2 Controller) Timeout expired in PS2Controller.WaitForAck()");
+            return false;
         }
 
         /// <summary>
@@ -459,7 +458,7 @@ namespace Cosmos.HAL
 
             if (TryRead(out var xByte))
             {
-                mDebugger.SendInternal("(PS/2 Controller) Device reset reponse byte: " + xByte);
+                mDebugger.SendInternal("(PS/2 Controller) Device reset response byte: " + xByte);
 
                 if (xByte == 0xAA || xByte == 0xFA)
                 {
@@ -492,21 +491,17 @@ namespace Cosmos.HAL
 
         public bool TryRead(out byte aByte)
         {
-            var i = 0;
-
-            while (!CanRead)
+            for (int i = 0; i < WaitTimeout; i++)
             {
-                i++;
-
-                if (i > ReadTimeout)
+                if (CanRead)
                 {
-                    aByte = 0;
-                    return false;
+                    aByte = IO.Data.Byte;
+                    return true;
                 }
             }
 
-            aByte = IO.Data.Byte;
-            return true;
+            aByte = 0;
+            return false;
         }
 
         public void WaitToRead()
@@ -520,7 +515,7 @@ namespace Cosmos.HAL
                 if (i > WaitTimeout)
                 {
                     mDebugger.SendInternal("(PS/2 Controller) Timeout expired while waiting to read!");
-                    i++;
+                    i = 0;
                 }
             }
         }
@@ -545,7 +540,7 @@ namespace Cosmos.HAL
         {
             mDebugger.SendInternal("(PS/2 Controller) Sending device command:");
             mDebugger.SendInternal("Device command:");
-            mDebugger.SendInternal((byte)aCommand);
+            mDebugger.SendInternal(aCommand);
 
             if (aSecondPS2Port)
             {
@@ -553,7 +548,7 @@ namespace Cosmos.HAL
             }
 
             WaitToWrite();
-            IO.Data.Byte = (byte)aCommand;
+            IO.Data.Byte = aCommand;
 
             if (WaitForResponse() == Nak)
             {
