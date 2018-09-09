@@ -17,7 +17,7 @@ namespace Cosmos.HAL
         public static TextScreenBase TextScreen = new TextScreen();
         public static PCI Pci;
 
-        private static readonly PS2Controller PS2Controller = new PS2Controller();
+        public static readonly PS2Controller PS2Controller = new PS2Controller();
 
         static public void Init(TextScreenBase textScreen)
         {

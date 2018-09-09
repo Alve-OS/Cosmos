@@ -9,14 +9,13 @@ namespace Cosmos.System
 
         public Thread(st.ThreadStart start)
         {
-            ThreadID = Cosmos.HAL.Global.SpawnThread(start);
+           
             ThreadFinalSetup();
         }
 
         public Thread(st.ParameterizedThreadStart start, object param)
         {
-            ThreadID = Cosmos.HAL.Global.SpawnThread(start, param);
-            ThreadFinalSetup();
+           
         }
 
         private void ThreadFinalSetup()

@@ -7,7 +7,7 @@ using Cosmos.Debug.Kernel;
 
 namespace Cosmos.HAL
 {
-    internal class PS2Controller : Device
+    public class PS2Controller : Device
     {
         private enum Command : byte
         {
@@ -82,7 +82,7 @@ namespace Cosmos.HAL
         private const byte Ack = 0xFA;
         private const byte Nak = 0xFE;
 
-        private const uint WaitTimeout = 1000;
+        private const uint WaitTimeout = 100000;
 
         private Status CurrentStatus => (Status)IO.Status.Byte;
 
@@ -190,6 +190,26 @@ namespace Cosmos.HAL
             {
                 SecondDevice = IdentifyDevice(2);
             }
+
+            Console.WriteLine("mIsDualChannel: " + mIsDualChannel.ToString());
+            Console.WriteLine("mFirstPortTestPassed: " + mFirstPortTestPassed.ToString());
+            Console.WriteLine("mSecondPortTestPassed: " + mSecondPortTestPassed.ToString());
+            if (FirstDevice == null)
+            {
+                Console.WriteLine("FirstDevice: null");
+            }
+            else
+            {
+                Console.WriteLine("FirstDevice: not null");
+            }
+            if (SecondDevice == null)
+            {
+                Console.WriteLine("SecondDevice: null");
+            }
+            else
+            {
+                Console.WriteLine("SecondDevice: not null");
+            }
         }
 
         /// <summary>
@@ -215,6 +235,9 @@ namespace Cosmos.HAL
 
                 if (TryRead(out var xFirstByte))
                 {
+
+                    Console.WriteLine("First Byte: " + xFirstByte);
+
                     /*
                      * |--------|---------------------------|
                      * |  Byte  |  Device Type              |
@@ -245,6 +268,7 @@ namespace Cosmos.HAL
                      */
                     else if (xFirstByte == 0xAB && TryRead(out var xSecondByte))
                     {
+                        Console.WriteLine("Second Byte: " + xSecondByte);
                         // TODO: replace xTest with (xSecondByte == 0x41 || xSecondByte == 0xC1)
                         //       when the stack corruption detection works better for complex conditions.
                         //
@@ -254,6 +278,9 @@ namespace Cosmos.HAL
 
                         if (xTest && aPort == 1)
                         {
+
+                            Console.WriteLine("(xTest && aPort == 1");
+
                             var xDevice = new PS2Keyboard(this, aPort);
                             xDevice.Initialize();
 
@@ -261,6 +288,9 @@ namespace Cosmos.HAL
                         }
                         else if (xSecondByte == 0x83)
                         {
+
+                            Console.WriteLine("xSecondByte == 0x83");
+
                             var xDevice = new PS2Keyboard(this, aPort);
                             xDevice.Initialize();
 
@@ -268,15 +298,15 @@ namespace Cosmos.HAL
                         }
                         else
                         {
-                            mDebugger.SendInternal("(PS/2 Controller) Device detection failed:");
-                            mDebugger.SendInternal("First Byte: " + xFirstByte);
-                            mDebugger.SendInternal("Second Byte: " + xSecondByte);
+                            Console.WriteLine("(PS/2 Controller) Device detection failed:");
+                            Console.WriteLine("First Byte: " + xFirstByte);
+                            Console.WriteLine("Second Byte: " + xSecondByte);
                         }
                     }
                     else
                     {
-                        mDebugger.SendInternal("(PS/2 Controller) Device detection failed:");
-                        mDebugger.SendInternal("Byte: " + xFirstByte);
+                        Console.WriteLine("(PS/2 Controller) Device detection failed:");
+                        Console.WriteLine("Byte: " + xFirstByte);
                     }
                 }
                 /*
@@ -289,6 +319,9 @@ namespace Cosmos.HAL
                  */
                 else if (aPort == 1)
                 {
+
+                    Console.WriteLine("aPort == 1");
+
                     var xDevice = new PS2Keyboard(this, aPort);
                     xDevice.Initialize();
 
@@ -296,14 +329,15 @@ namespace Cosmos.HAL
                 }
                 else
                 {
-                    mDebugger.SendInternal("(PS/2 Controller) Device detection failed: no bytes received!");
+                    Console.WriteLine("(PS/2 Controller) Device detection failed: no bytes received!");
                 }
 
                 return null;
             }
             else
             {
-                throw new Exception("(PS/2 Controller) Port " + aPort + " doesn't exist");
+                Console.WriteLine("(PS/2 Controller) Port " + aPort + " doesn't exist");
+                return null;
             }
         }
 
@@ -454,31 +488,31 @@ namespace Cosmos.HAL
         /// <returns>Returns true if the device resets successfully, false otherwise.</returns>
         public bool WaitForDeviceReset()
         {
-            mDebugger.SendInternal("(PS/2 Controller) Waiting for device reset:");
+            Console.WriteLine("(PS/2 Controller) Waiting for device reset:");
 
             if (TryRead(out var xByte))
             {
-                mDebugger.SendInternal("(PS/2 Controller) Device reset response byte: " + xByte);
+                Console.WriteLine("(PS/2 Controller) Device reset response byte: " + xByte);
 
                 if (xByte == 0xAA || xByte == 0xFA)
                 {
-                    mDebugger.SendInternal("(PS/2 Controller) Device reset successful!");
+                    Console.WriteLine("(PS/2 Controller) Device reset successful!");
                     return true;
                 }
                 else if (xByte == 0xFC)
                 {
-                    mDebugger.SendInternal("(PS/2 Controller) Device reset failed!");
+                    Console.WriteLine("(PS/2 Controller) Device reset failed!");
                     return false;
                 }
                 else
                 {
-                    mDebugger.SendInternal("(PS/2 Controller) Device reset failed: unexpected byte received!");
+                    Console.WriteLine("(PS/2 Controller) Device reset failed: unexpected byte received!");
                     return false;
                 }
             }
             else
             {
-                mDebugger.SendInternal("(PS/2 Controller) Device reset failed: device disconnected?");
+                Console.WriteLine("(PS/2 Controller) Device reset failed: device disconnected?");
                 return false;
             }
         }
