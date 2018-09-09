@@ -40,9 +40,9 @@ namespace Cosmos.HAL
             mPS2Controller.WaitForDeviceReset();
 
             //VMware doesn't support the Get/SetScanCode command
-            Console.WriteLine("(PS/2 Keyboard) Current scan code set: " + GetScanCodeSet());
-            SetScanCodeSet(1);
-            Console.WriteLine("(PS/2 Keyboard) Current scan code set: " + GetScanCodeSet());
+            //Console.WriteLine("(PS/2 Keyboard) Current scan code set: " + GetScanCodeSet());
+            //SetScanCodeSet(1);
+            //Console.WriteLine("(PS/2 Keyboard) Current scan code set: " + GetScanCodeSet());
 
             INTs.SetIrqHandler(1, HandleIRQ);
 
