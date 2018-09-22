@@ -12,7 +12,7 @@ namespace Cosmos.System.FileSystem.VFS
     {
         private static VFSBase mVFS;
 
-        public static void RegisterVFS(VFSBase aVFS)
+        public static void RegisterVFS(VFSBase aVFS, string FS)
         {
             Global.mFileSystemDebugger.SendInternal("--- VFSManager.RegisterVFS ---");
             if (mVFS != null)
@@ -20,7 +20,7 @@ namespace Cosmos.System.FileSystem.VFS
                 throw new Exception("Virtual File System Manager already initialized!");
             }
 
-            aVFS.Initialize();
+            aVFS.Initialize(FS);
             mVFS = aVFS;
         }
 

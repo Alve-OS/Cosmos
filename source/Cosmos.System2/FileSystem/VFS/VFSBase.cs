@@ -6,7 +6,7 @@ namespace Cosmos.System.FileSystem.VFS
 {
     public abstract class VFSBase
     {
-        public abstract void Initialize();
+        public abstract void Initialize(string FS);
 
         public abstract void RegisterFileSystem(FileSystemFactory aFileSystemFactory);
 

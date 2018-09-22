@@ -26,13 +26,24 @@ namespace Cosmos.System.FileSystem
         /// <summary>
         /// Initializes the virtual file system.
         /// </summary>
-        public override void Initialize()
+        public override void Initialize(string FS)
         {
             mPartitions = new List<Partition>();
             mFileSystems = new List<FileSystem>();
             mRegisteredFileSystems = new List<FileSystemFactory>();
 
-            RegisterFileSystem(new FatFileSystemFactory());
+            switch (FS)
+            {
+                case "FAT":
+                    RegisterFileSystem(new FatFileSystemFactory());
+                    break;
+                case "SFS":
+                    RegisterFileSystem(new SFSFileSystemFactory());
+                    break;
+                default:
+                    RegisterFileSystem(new FatFileSystemFactory());
+                    break;
+            }
 
             InitializePartitions();
             if (mPartitions.Count > 0)
