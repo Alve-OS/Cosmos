@@ -3,22 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Cosmos.HAL;
-using Cosmos.HAL.BlockDevice;
-using Cosmos.System.FileSystem.Listing;
 using Cosmos.System.FileSystem.SFS.Structs;
-using DirectoryEntry = Cosmos.System.FileSystem.SFS.Structs.SFSDirectoryEntry;
 
 namespace Cosmos.System.FileSystem.SFS
 {
-    public class SimpleFS : FileSystem
+    public class SimpleFS
     {
         private List<Structure> IndexAria { get; set; } = new List<Structure>();
 
         #region Props
 
-        public SimpleFS(Partition aDevice, string aRootPath, long aSize) : base(aDevice, aRootPath, aSize)
+        public SimpleFS(IBlockDevice blockDevice)
         {
-            var blockDevice = new CosmosBlockDevice(aDevice);
             BlockDevice = blockDevice;
             BlockBuffer = new BlockBuffer(BlockDevice);
         }
@@ -27,20 +23,6 @@ namespace Cosmos.System.FileSystem.SFS
         public BlockBuffer BlockBuffer { get; set; }
 
         public SuperBlock SuperBlock { get; set; }
-
-        public override long AvailableFreeSpace => throw new NotImplementedException();
-
-        public override long TotalFreeSpace => throw new NotImplementedException();
-
-        public override string Type
-        {
-            get
-            {
-                return "SFS";
-            }
-        }
-
-        public override string Label { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         #endregion
 
@@ -106,17 +88,22 @@ namespace Cosmos.System.FileSystem.SFS
 
             //dir names must be guid
             foreach (var entry in IndexAria)
+            {
                 if (entry is DirectoryEntry de)
+                {
                     if (de.Name == name)
+                    {
                         return false;
-
+                    }
+                }
+            }
+            
             //add it
             IndexAria.Insert(IndexAria.Count - 1, new DirectoryEntry
             {
                 TimeStamp = 0,
                 Name = name
             });
-
             Save();
 
             return true;
@@ -126,13 +113,17 @@ namespace Cosmos.System.FileSystem.SFS
         {
             //dir names must be guid
             foreach (var entry in IndexAria)
+            {
                 if (entry is DirectoryEntry de)
+                {
                     if (de.Name == name)
                     {
                         IndexAria.Remove(de);
                         Save();
                         return true;
                     }
+                }
+            }
 
 
             return false;
@@ -178,15 +169,22 @@ namespace Cosmos.System.FileSystem.SFS
             FileEntry file = null;
 
             foreach (var entry in IndexAria)
+            {
                 if (entry is FileEntry fe)
+                {
                     if (fe.Name == filePath)
+                    {
                         file = fe;
+                    }
+                }
+            }
 
             if (file == null) return null;
 
             var buf = new List<byte>();
 
             BlockBuffer.Offset = file.StartingBlock * BlockDevice.BlockSize;
+
 
             for (int i = 0; i < file.Length; i++)
             {
@@ -223,7 +221,8 @@ namespace Cosmos.System.FileSystem.SFS
                 fileEntry = new FileEntry
                 {
                     StartingBlock = SuperBlock.DataSizeInBlocks + SuperBlock.TotalReservedBlocks,
-                    EndingBlock = SuperBlock.TotalReservedBlocks + (data.Length / BlockDevice.TotalBlocks + 1),
+                    EndingBlock = (SuperBlock.DataSizeInBlocks + SuperBlock.TotalReservedBlocks) +
+                                  (data.Length / BlockDevice.BlockSize) + 1,
                     Length = data.Length,
                     Name = filePath,
                     TimeStamp = 0
@@ -236,12 +235,21 @@ namespace Cosmos.System.FileSystem.SFS
             }
 
             //write data
-            BlockBuffer.Offset = fileEntry.StartingBlock * BlockDevice.BlockSize;
+            var bl = fileEntry.EndingBlock - fileEntry.StartingBlock;
 
-            foreach (var b in data)
+            var buf = new byte[BlockDevice.BlockSize];
+
+            long c = 0;
+            for (int i = 0; i < bl - 1; i++)
             {
-                BlockBuffer.WriteByte(b);
+                Array.Copy(data, i * BlockDevice.BlockSize, buf, 0, BlockDevice.BlockSize);
+                c += BlockDevice.BlockSize;
+                BlockDevice.WriteBlock(fileEntry.StartingBlock + i, buf);
             }
+
+
+            Array.Copy(data, c, buf, 0, data.Length - c);
+            BlockDevice.WriteBlock(fileEntry.StartingBlock + (bl - 1), buf);
 
             Save();
             return true;
@@ -401,7 +409,9 @@ namespace Cosmos.System.FileSystem.SFS
             }
         }
 
-        public override void DisplayFileSystemInfo()
+        #endregion
+
+        public void DisplayFileSystemInfo()
         {
             CustomConsole.WriteLineInfo("-------File System--------");
             CustomConsole.WriteLineInfo("BlockSize             = " + SuperBlock.BlockSize);
@@ -429,42 +439,6 @@ namespace Cosmos.System.FileSystem.SFS
             Global.mFileSystemDebugger.SendInternal("TotalReservedBlocks   = " + SuperBlock.TotalReservedBlocks);
             Global.mFileSystemDebugger.SendInternal("VersionNumber         = " + SuperBlock.VersionNumber);
         }
-
-        public override List<Listing.DirectoryEntry> GetDirectoryListing(Listing.DirectoryEntry baseDirectory)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Listing.DirectoryEntry GetRootDirectory()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Listing.DirectoryEntry CreateDirectory(Listing.DirectoryEntry aParentDirectory, string aNewDirectory)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Listing.DirectoryEntry CreateFile(Listing.DirectoryEntry aParentDirectory, string aNewFile)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void DeleteDirectory(Listing.DirectoryEntry aPath)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void DeleteFile(Listing.DirectoryEntry aPath)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Format(string aDriveFormat, bool aQuick)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
+
 }

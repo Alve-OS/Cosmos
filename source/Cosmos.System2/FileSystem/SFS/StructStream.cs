@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Cosmos.System.FileSystem.SFS
 {
-    public unsafe class StructStream
+    public class StructStream
     {
         public List<byte> _buffer = new List<byte>();
         public int _offset = 0;

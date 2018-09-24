@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Cosmos.System.FileSystem.SFS.Structs
 {
-    public class SFSDirectoryEntry : Structure
+    public class DirectoryEntry : Structure
     {
         public override byte EntryType => 0x11;
         
