@@ -1,164 +1,245 @@
-//#define COSMOSDEBUG
+#define COSMOSDEBUG
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Cosmos.Core.IOGroup;
 
 namespace Cosmos.HAL.Drivers
 {
+    /// <summary>
+    /// VBEDriver class. Used to directly write registers values to the port.
+    /// </summary>
     public class VBEDriver
     {
 
-        private Core.IOGroup.VBE IO = Core.Global.BaseIOGroups.VBE;
+        private static readonly VBE IO = Core.Global.BaseIOGroups.VBE;
 
-        private enum VBERegisterIndex {
-            VBEDisplayID = 0x00,
-            VBEDisplayXResolution,
-            VBEDisplayYResolution,
-            VBEDisplayBPP,
-            VBEDisplayEnable,
-            VBEDisplayBankMode,
-            VBEDisplayVirtualWidth,
-            VBEDisplayVirtualHeight,
-            VBEDisplayXOffset,
-            VBEDisplayYOffset
+        /// <summary>
+        /// Register index.
+        /// <para>
+        /// Avilable indexs:
+        /// <list type="bullet">
+        /// <item>DisplayID.</item>
+        /// <item>DisplayXResolution.</item>
+        /// <item>DisplayYResolution.</item>
+        /// <item>DisplayBPP.</item>
+        /// <item>DisplayEnable.</item>
+        /// <item>DisplayBankMode.</item>
+        /// <item>DisplayVirtualWidth.</item>
+        /// <item>DisplayVirtualHeight.</item>
+        /// <item>DisplayXOffset.</item>
+        /// <item>DisplayYOffset.</item>
+        /// </list>
+        /// </para>
+        /// </summary>
+        private enum RegisterIndex
+        {
+            DisplayID = 0x00,
+            DisplayXResolution,
+            DisplayYResolution,
+            DisplayBPP,
+            DisplayEnable,
+            DisplayBankMode,
+            DisplayVirtualWidth,
+            DisplayVirtualHeight,
+            DisplayXOffset,
+            DisplayYOffset
         };
 
+        /// <summary>
+        /// Enable values.
+        /// <para>
+        /// Avilable values:
+        /// <list type="bullet">
+        /// <item>Disabled.</item>
+        /// <item>Enabled.</item>
+        /// <item>UseLinearFrameBuffer.</item>
+        /// <item>NoClearMemory.</item>
+        /// </list>
+        /// </para>
+        /// </summary>
         [Flags]
-        private enum VBEEnableValues
+        private enum EnableValues
         {
-            VBEDisabled = 0x00,
-            VBEEnabled,
-            VBEUseLinearFrameBuffer = 0x40,
-            VBENoClearMemory = 0x80,
+            Disabled = 0x00,
+            Enabled,
+            UseLinearFrameBuffer = 0x40,
+            NoClearMemory = 0x80,
         };
 
-        /* We never want that the default empty constructor is used to create a VBEDriver */
-        private VBEDriver()
-        {
-
-        }
-
+        /// <summary>
+        /// Create new instance of the <see cref="VBEDriver"/> class.
+        /// </summary>
+        /// <param name="xres">X resolution.</param>
+        /// <param name="yres">Y resolution.</param>
+        /// <param name="bpp">BPP (color depth).</param>
         public VBEDriver(ushort xres, ushort yres, ushort bpp)
         {
-            /*
-             * XXX Why this simple test is killing the CPU? It is not working in Bochs too... probably it was neither
-             * tested... bah! Removing it for now.
-             */
-#if false
-            if (HAL.PCI.GetDevice(1234, 1111) == null)
-            {
-                throw new NotSupportedException("No BGA adapter found..");
-            }
-#endif
-            if (Available() == false)
-            {
-                throw new NotSupportedException("No BGA adapter found...");
-            }
-
             Global.mDebugger.SendInternal($"Creating VBEDriver with Mode {xres}*{yres}@{bpp}");
             VBESet(xres, yres, bpp);
         }
 
-        private void VBEWrite(VBERegisterIndex index, ushort value)
+        /// <summary>
+        /// Write value to VBE index.
+        /// </summary>
+        /// <param name="index">Register index.</param>
+        /// <param name="value">Value.</param>
+        private static void VBEWrite(RegisterIndex index, ushort value)
         {
-            IO.VbeIndex.Word = (ushort) index;
+            IO.VbeIndex.Word = (ushort)index;
             IO.VbeData.Word = value;
         }
 
-        private ushort VBERead(VBERegisterIndex index)
+        private static ushort VBERead(RegisterIndex index)
         {
-            IO.VbeIndex.Word = (ushort) index;
-            return IO.VbeIndex.Word;
+            IO.VbeIndex.Word = (ushort)index;
+            return IO.VbeData.Word;
+        }
+        public static bool Available()
+        {
+            //This code wont work as long as Bochs uses BGA ISA, since it wont discover it in PCI
+#if false
+            return HAL.PCI.GetDevice(VendorID.Bochs, DeviceID.BGA) != null;
+#endif
+            return VBERead(RegisterIndex.DisplayID) == 0xB0C5;
         }
 
-        public bool Available()
-        {
-            if (VBERead(VBERegisterIndex.VBEDisplayID) == 0xB0C5)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        public void VBEDisableDisplay()
+        /// <summary>
+        /// Disable display.
+        /// </summary>
+        public void DisableDisplay()
         {
             Global.mDebugger.SendInternal($"Disabling VBE display");
-            VBEWrite(VBERegisterIndex.VBEDisplayEnable, (ushort)VBEEnableValues.VBEDisabled);
+            VBEWrite(RegisterIndex.DisplayEnable, (ushort)EnableValues.Disabled);
         }
 
-        private void VBESetXResolution(ushort xres)
+        /// <summary>
+        /// Set X resolution.
+        /// </summary>
+        /// <param name="xres">X resolution.</param>
+        private void SetXResolution(ushort xres)
         {
             Global.mDebugger.SendInternal($"VBE Setting X resolution to {xres}");
-            VBEWrite(VBERegisterIndex.VBEDisplayXResolution, xres);
+            VBEWrite(RegisterIndex.DisplayXResolution, xres);
         }
 
-        private void VBESetYResolution(ushort yres)
+        /// <summary>
+        /// Set Y resolution.
+        /// </summary>
+        /// <param name="yres">Y resolution.</param>
+        private void SetYResolution(ushort yres)
         {
             Global.mDebugger.SendInternal($"VBE Setting Y resolution to {yres}");
-            VBEWrite(VBERegisterIndex.VBEDisplayYResolution, yres);
+            VBEWrite(RegisterIndex.DisplayYResolution, yres);
         }
 
-        private void VBESetDisplayBPP(ushort bpp)
+        /// <summary>
+        /// Set BPP.
+        /// </summary>
+        /// <param name="bpp">BPP (color depth).</param>
+        private void SetDisplayBPP(ushort bpp)
         {
             Global.mDebugger.SendInternal($"VBE Setting BPP to {bpp}");
-            VBEWrite(VBERegisterIndex.VBEDisplayBPP, bpp);
+            VBEWrite(RegisterIndex.DisplayBPP, bpp);
         }
 
-        private void VBEEnableDisplay(VBEEnableValues EnableFlags)
+        /// <summary>
+        /// Enable display.
+        /// </summary>
+        private void EnableDisplay(EnableValues EnableFlags)
         {
             //Global.mDebugger.SendInternal($"VBE Enabling display with EnableFlags (ushort){EnableFlags}");
-            VBEWrite(VBERegisterIndex.VBEDisplayEnable, (ushort)EnableFlags);
+            VBEWrite(RegisterIndex.DisplayEnable, (ushort)EnableFlags);
         }
 
+        /// <summary>
+        /// Set VBE values.
+        /// </summary>
+        /// <param name="xres">X resolution.</param>
+        /// <param name="yres">Y resolution.</param>
+        /// <param name="bpp">BPP (color depth).</param>
         public void VBESet(ushort xres, ushort yres, ushort bpp)
         {
-            VBEDisableDisplay();
-            VBESetXResolution(xres);
-            VBESetYResolution(yres);
-            VBESetDisplayBPP(bpp);
+            DisableDisplay();
+            SetXResolution(xres);
+            SetYResolution(yres);
+            SetDisplayBPP(bpp);
             /*
              * Re-enable the Display with LinearFrameBuffer and without clearing video memory of previous value 
              * (this permits to change Mode without losing the previous datas)
-             */ 
-            VBEEnableDisplay(VBEEnableValues.VBEEnabled | VBEEnableValues.VBEUseLinearFrameBuffer | VBEEnableValues.VBENoClearMemory);
+             */
+            EnableDisplay(EnableValues.Enabled | EnableValues.UseLinearFrameBuffer | EnableValues.NoClearMemory);
         }
 
+        /// <summary>
+        /// Set VRAM.
+        /// </summary>
+        /// <param name="index">Index to set.</param>
+        /// <param name="value">Value to set.</param>
         public void SetVRAM(uint index, byte value)
         {
             Global.mDebugger.SendInternal($"Writing to driver memory in position {index} value {value} (as byte)");
             IO.LinearFrameBuffer.Bytes[index] = value;
         }
 
+        /// <summary>
+        /// Set VRAM.
+        /// </summary>
+        /// <param name="index">Index to set.</param>
+        /// <param name="value">Value to set.</param>
         public void SetVRAM(uint index, ushort value)
         {
             Global.mDebugger.SendInternal($"Writing to driver memory in position {index} value {value} (as ushort)");
             IO.LinearFrameBuffer.Words[index] = value;
         }
 
+        /// <summary>
+        /// Set VRAM.
+        /// </summary>
+        /// <param name="index">Index to set.</param>
+        /// <param name="value">Value to set.</param>
         public void SetVRAM(uint index, uint value)
         {
             //Global.mDebugger.SendInternal($"Writing to driver memory in position {index} value {value} (as uint)");
             IO.LinearFrameBuffer.DWords[index] = value;
         }
 
+        /// <summary>
+        /// Get VRAM.
+        /// </summary>
+        /// <param name="index">Index to get.</param>
+        /// <returns>byte value.</returns>
         public byte GetVRAM(uint index)
         {
             return IO.LinearFrameBuffer.Bytes[index];
         }
 
+        /// <summary>
+        /// Clear VRAM.
+        /// </summary>
+        /// <param name="value">Value of fill with.</param>
         public void ClearVRAM(uint value)
         {
             IO.LinearFrameBuffer.Fill(value);
         }
 
+        /// <summary>
+        /// Clear VRAM.
+        /// </summary>
+        /// <param name="aStart">A start.</param>
+        /// <param name="aCount">A count.</param>
+        /// <param name="value">A volum.</param>
         public void ClearVRAM(int aStart, int aCount, int value)
         {
             IO.LinearFrameBuffer.Fill(aStart, aCount, value);
         }
 
+        /// <summary>
+        /// Copy VRAM.
+        /// </summary>
+        /// <param name="aStart">A start.</param>
+        /// <param name="aData">A data.</param>
+        /// <param name="aIndex">A index.</param>
+        /// <param name="aCount">A count.</param>
         public void CopyVRAM(int aStart, int[] aData, int aIndex, int aCount)
         {
             IO.LinearFrameBuffer.Copy(aStart, aData, aIndex, aCount);
