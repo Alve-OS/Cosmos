@@ -1,4 +1,4 @@
-#define COSMOSDEBUG
+//#define COSMOSDEBUG
 
 using System;
 using Cosmos.Core;
@@ -12,7 +12,7 @@ namespace Cosmos.HAL.Drivers
     public class VBEDriver
     {
 
-        private static readonly VBE IO = Core.Global.BaseIOGroups.VBE;
+        private static readonly VBEIOGroup IO = Core.Global.BaseIOGroups.VBE;
         ManagedMemoryBlock lastbuffer;
 
         /// <summary>
@@ -76,20 +76,45 @@ namespace Cosmos.HAL.Drivers
         /// <param name="bpp">BPP (color depth).</param>
         public VBEDriver(ushort xres, ushort yres, ushort bpp)
         {
-            Global.mDebugger.SendInternal($"Creating VBEDriver with Mode {xres}*{yres}@{bpp}");
-            IO.LinearFrameBuffer = new MemoryBlock(0xE0000000, (uint)xres * yres * (uint)(bpp / 8));
-            lastbuffer = new ManagedMemoryBlock((uint)xres * yres * (uint)(bpp / 8));
-            VBESet(xres, yres, bpp);
+            PCIDevice videocard;
+
+            if (VBE.IsAvailable()) //VBE VESA Enabled Mulitboot Parsing
+            {
+                Global.mDebugger.SendInternal($"Creating VBE VESA driver with Mode {xres}*{yres}@{bpp}");
+                IO.LinearFrameBuffer = new MemoryBlock(VBE.getLfbOffset(), (uint)xres * yres * (uint)(bpp / 8));
+                lastbuffer = new ManagedMemoryBlock((uint)xres * yres * (uint)(bpp / 8));
+            }
+            else if (ISAModeAvailable()) //Bochs Graphics Adaptor ISA Mode
+            {
+                Global.mDebugger.SendInternal($"Creating VBE BGA driver with Mode {xres}*{yres}@{bpp}.");
+
+                IO.LinearFrameBuffer = new MemoryBlock(0xE0000000, 1920 * 1200 * 4);
+                lastbuffer = new ManagedMemoryBlock(1920 * 1200 * 4);
+                VBESet(xres, yres, bpp);
+            }
+            else if (((videocard = HAL.PCI.GetDevice(VendorID.VirtualBox, DeviceID.VBVGA)) != null) || //VirtualBox Video Adapter PCI Mode
+            ((videocard = HAL.PCI.GetDevice(VendorID.Bochs, DeviceID.BGA)) != null)) // Bochs Graphics Adaptor PCI Mode
+            {
+                Global.mDebugger.SendInternal($"Creating VBE BGA driver with Mode {xres}*{yres}@{bpp}. Framebuffer address=" + videocard.BAR0);
+
+                IO.LinearFrameBuffer = new MemoryBlock(videocard.BAR0, 1920 * 1200 * 4);
+                lastbuffer = new ManagedMemoryBlock(1920 * 1200 * 4);
+                VBESet(xres, yres, bpp);
+            }
+            else
+            {
+                throw new Exception("No supported VBE device found.");
+            }
         }
 
-        /// <summary>
+		/// <summary>
         /// Write value to VBE index.
         /// </summary>
         /// <param name="index">Register index.</param>
         /// <param name="value">Value.</param>
         private static void VBEWrite(RegisterIndex index, ushort value)
         {
-            IO.VbeIndex.Word = (ushort)index;
+            IO.VbeIndex.Word = (ushort) index;
             IO.VbeData.Word = value;
         }
 
@@ -98,7 +123,7 @@ namespace Cosmos.HAL.Drivers
             IO.VbeIndex.Word = (ushort)index;
             return IO.VbeData.Word;
         }
-        public static bool Available()
+        public static bool ISAModeAvailable()
         {
             //This code wont work as long as Bochs uses BGA ISA, since it wont discover it in PCI
 #if false
@@ -106,8 +131,8 @@ namespace Cosmos.HAL.Drivers
 #endif
             return VBERead(RegisterIndex.DisplayID) == 0xB0C5;
         }
-
-        /// <summary>
+        
+		/// <summary>
         /// Disable display.
         /// </summary>
         public void DisableDisplay()
@@ -170,7 +195,7 @@ namespace Cosmos.HAL.Drivers
             /*
              * Re-enable the Display with LinearFrameBuffer and without clearing video memory of previous value 
              * (this permits to change Mode without losing the previous datas)
-             */
+             */ 
             EnableDisplay(EnableValues.Enabled | EnableValues.UseLinearFrameBuffer | EnableValues.NoClearMemory);
         }
 
