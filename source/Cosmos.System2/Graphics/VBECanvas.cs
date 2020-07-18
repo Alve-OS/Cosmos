@@ -44,6 +44,13 @@ namespace Cosmos.System.Graphics
         {
             Global.mDebugger.SendInternal($"Creating new VBEScreen() with mode {aMode.Columns}x{aMode.Rows}x{(uint)aMode.ColorDepth}");
 
+            if (Core.VBE.IsAvailable())
+            {
+                Core.VBE.ModeInfo ModeInfo = Core.VBE.getModeInfo();
+                aMode = new Mode(ModeInfo.width, ModeInfo.height, (ColorDepth)ModeInfo.bpp);
+                Global.mDebugger.SendInternal($"Detected VBE VESA with {aMode.Columns}x{aMode.Rows}x{(uint)aMode.ColorDepth}");
+            }
+
             ThrowIfModeIsNotValid(aMode);
 
             _VBEDriver = new VBEDriver((ushort)aMode.Columns, (ushort)aMode.Rows, (ushort)aMode.ColorDepth);
@@ -122,6 +129,7 @@ namespace Cosmos.System.Graphics
             new Mode(1024, 768, ColorDepth.ColorDepth32),
             /* The so called HD-Ready resolution */
             new Mode(1280, 720, ColorDepth.ColorDepth32),
+            new Mode(1280, 768, ColorDepth.ColorDepth32),
             new Mode(1280, 1024, ColorDepth.ColorDepth32),
             /* A lot of HD-Ready screen uses this instead of 1280x720 */
             new Mode(1366, 768, ColorDepth.ColorDepth32),
@@ -218,9 +226,19 @@ namespace Cosmos.System.Graphics
             switch (Mode.ColorDepth)
             {
                 case ColorDepth.ColorDepth32:
+
                     offset = (uint)GetPointOffset(aX, aY);
 
                     Global.mDebugger.SendInternal($"Drawing Point of color {color} at offset {offset}");
+
+                    if (color.A == 0)
+                    {
+                        return;
+                    }
+                    else if (color.A < 255)
+                    {
+                        color = AlphaBlend(color, GetPointColor(aX, aY), color.A);
+                    }
 
                     _VBEDriver.SetVRAM(offset, color.B);
                     _VBEDriver.SetVRAM(offset + 1, color.G);
