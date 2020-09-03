@@ -223,7 +223,7 @@ namespace Cosmos.System.Graphics.Fonts
             return font;
         }
 
-        private int FindASCIIOffset(byte aI)
+        public int FindASCIIOffset(byte aI)
         {
             int offset;
             for (offset = 0; offset < _UnicodeMappings.Count; offset++)

@@ -388,5 +388,10 @@ namespace Cosmos.System.Graphics
 
         #endregion
 
+        public override void ScrollUp()
+        {
+            _VBEDriver.ScrollUp();
+        }
+
     }
 }

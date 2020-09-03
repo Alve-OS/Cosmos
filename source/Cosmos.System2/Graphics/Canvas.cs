@@ -1157,5 +1157,10 @@ namespace Cosmos.System.Graphics
             return Color.FromArgb(R, G, B);
         }
 
+        public virtual void ScrollUp()
+        {
+
+        }
+
     }
 }

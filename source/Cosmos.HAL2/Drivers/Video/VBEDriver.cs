@@ -13,7 +13,6 @@ namespace Cosmos.HAL.Drivers
     {
 
         private static readonly VBEIOGroup IO = Core.Global.BaseIOGroups.VBE;
-        ManagedMemoryBlock lastbuffer;
 
         /// <summary>
         /// Register index.
@@ -68,6 +67,9 @@ namespace Cosmos.HAL.Drivers
             NoClearMemory = 0x80,
         };
 
+        int mRow2Addr;
+        int mScrollSize;
+
         /// <summary>
         /// Create new instance of the <see cref="VBEDriver"/> class.
         /// </summary>
@@ -78,18 +80,19 @@ namespace Cosmos.HAL.Drivers
         {
             PCIDevice videocard;
 
+            mScrollSize = (xres * yres) * (bpp / 8);
+            mRow2Addr = xres * (bpp / 8) * 16;
+
             if (VBE.IsAvailable()) //VBE VESA Enabled Mulitboot Parsing
             {
                 Global.mDebugger.SendInternal($"Creating VBE VESA driver with Mode {xres}*{yres}@{bpp}");
                 IO.LinearFrameBuffer = new MemoryBlock(VBE.getLfbOffset(), (uint)xres * yres * (uint)(bpp / 8));
-                lastbuffer = new ManagedMemoryBlock((uint)xres * yres * (uint)(bpp / 8));
             }
             else if (ISAModeAvailable()) //Bochs Graphics Adaptor ISA Mode
             {
                 Global.mDebugger.SendInternal($"Creating VBE BGA driver with Mode {xres}*{yres}@{bpp}.");
 
                 IO.LinearFrameBuffer = new MemoryBlock(0xE0000000, 1920 * 1200 * 4);
-                lastbuffer = new ManagedMemoryBlock(1920 * 1200 * 4);
                 VBESet(xres, yres, bpp);
             }
             else if (((videocard = HAL.PCI.GetDevice(VendorID.VirtualBox, DeviceID.VBVGA)) != null) || //VirtualBox Video Adapter PCI Mode
@@ -98,7 +101,6 @@ namespace Cosmos.HAL.Drivers
                 Global.mDebugger.SendInternal($"Creating VBE BGA driver with Mode {xres}*{yres}@{bpp}. Framebuffer address=" + videocard.BAR0);
 
                 IO.LinearFrameBuffer = new MemoryBlock(videocard.BAR0, 1920 * 1200 * 4);
-                lastbuffer = new ManagedMemoryBlock(1920 * 1200 * 4);
                 VBESet(xres, yres, bpp);
             }
             else
@@ -207,7 +209,7 @@ namespace Cosmos.HAL.Drivers
         public void SetVRAM(uint index, byte value)
         {
             Global.mDebugger.SendInternal($"Writing to driver memory in position {index} value {value} (as byte)");
-            lastbuffer[index] = value;
+            IO.LinearFrameBuffer.Bytes[index] = value;
         }
 
         /// <summary>
@@ -218,8 +220,7 @@ namespace Cosmos.HAL.Drivers
         public void SetVRAM(uint index, ushort value)
         {
             //Global.mDebugger.SendInternal($"Writing to driver memory in position {index} value {value} (as ushort)");
-            lastbuffer[index] = (byte)((value >> 8) & 0xFF);
-            lastbuffer[index + 1] = (byte)((value >> 0) & 0xFF);
+            IO.LinearFrameBuffer.Words[index] = value;
         }
 
         /// <summary>
@@ -230,10 +231,7 @@ namespace Cosmos.HAL.Drivers
         public void SetVRAM(uint index, uint value)
         {
             //Global.mDebugger.SendInternal($"Writing to driver memory in position {index} value {value} (as uint)");
-            lastbuffer[index] = (byte)((value >> 24) & 0xFF);
-            lastbuffer[index + 1] = (byte)((value >> 16) & 0xFF);
-            lastbuffer[index + 2] = (byte)((value >> 8) & 0xFF);
-            lastbuffer[index + 3] = (byte)((value >> 0) & 0xFF);
+            IO.LinearFrameBuffer.DWords[index] = value;
         }
 
         /// <summary>
@@ -243,9 +241,7 @@ namespace Cosmos.HAL.Drivers
         /// <returns>byte value.</returns>
         public uint GetVRAM(uint index)
         {
-            int pixel = (lastbuffer[index + 3] << 24) | (lastbuffer[index + 2] << 16) | (lastbuffer[index + 1] << 8) | lastbuffer[index];
-
-            return (uint)pixel;
+            return IO.LinearFrameBuffer.DWords[index];
         }
 
         /// <summary>
@@ -254,7 +250,7 @@ namespace Cosmos.HAL.Drivers
         /// <param name="value">Value of fill with.</param>
         public void ClearVRAM(uint value)
         {
-            lastbuffer.Fill(value);
+            IO.LinearFrameBuffer.Fill(value);
         }
 
         /// <summary>
@@ -265,7 +261,7 @@ namespace Cosmos.HAL.Drivers
         /// <param name="value">A volum.</param>
         public void ClearVRAM(int aStart, int aCount, int value)
         {
-            lastbuffer.Fill(aStart, aCount, value);
+            IO.LinearFrameBuffer.Fill(aStart, aCount, value);
         }
 
         /// <summary>
@@ -277,7 +273,7 @@ namespace Cosmos.HAL.Drivers
         /// <param name="aCount">A count.</param>
         public void CopyVRAM(int aStart, int[] aData, int aIndex, int aCount)
         {
-            lastbuffer.Copy(aStart, aData, aIndex, aCount);
+            IO.LinearFrameBuffer.Copy(aStart, aData, aIndex, aCount);
         }
 
         /// <summary>
@@ -285,7 +281,13 @@ namespace Cosmos.HAL.Drivers
         /// </summary>
         public void Swap()
         {
-            IO.LinearFrameBuffer.Copy(lastbuffer);
+            //IO.LinearFrameBuffer.Copy(lastbuffer);
+        }
+
+        public void ScrollUp()
+        {
+            IO.LinearFrameBuffer.MoveDown(0, (uint)mRow2Addr, (uint)mScrollSize);
+            IO.LinearFrameBuffer.Fill(mScrollSize, mRow2Addr, 0x00);
         }
     }
 }

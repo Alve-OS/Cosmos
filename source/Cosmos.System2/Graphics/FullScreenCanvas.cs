@@ -63,11 +63,11 @@ namespace Cosmos.System.Graphics
         /// <exception cref="sys.ArgumentOutOfRangeException">Thrown if default graphics mode is not suppoted.</exception>
         private static Canvas GetVideoDriver()
         {
-            if (_SVGAIIDevice != null && PCI.Exists(_SVGAIIDevice))
+            /*if (_SVGAIIDevice != null && PCI.Exists(_SVGAIIDevice))
             {
                 return new SVGAIICanvas();
             }
-            if (VBEAvailable())
+            */if (VBEAvailable())
             {
                 return new VBECanvas();
             }
@@ -113,11 +113,11 @@ namespace Cosmos.System.Graphics
         /// <exception cref="sys.ArgumentOutOfRangeException">Thrown if graphics mode is not suppoted.</exception>
         private static Canvas GetVideoDriver(Mode mode)
         {
-            if (_SVGAIIDevice != null && PCI.Exists(_SVGAIIDevice))
+            /*if (_SVGAIIDevice != null && PCI.Exists(_SVGAIIDevice))
             {
                 return new SVGAIICanvas(mode);
             }
-            if (VBEAvailable())
+            */if (VBEAvailable())
             {
                 return new VBECanvas(mode);
             }
