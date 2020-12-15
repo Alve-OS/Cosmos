@@ -170,6 +170,27 @@ namespace Cosmos.HAL
             return null;
         }
 
+        /// <summary>
+        /// Get device.
+        /// </summary>
+        /// <param name="bus">Bus ID.</param>
+        /// <param name="slot">Slot position ID.</param>
+        /// <param name="function">Function ID.</param>
+        /// <returns></returns>
+        public static PCIDevice GetDevice(uint bus, uint slot, uint function)
+        {
+            foreach (var xDevice in Devices)
+            {
+                if (xDevice.bus == bus &&
+                    xDevice.slot == slot &&
+                    xDevice.function == function)
+                {
+                    return xDevice;
+                }
+            }
+            return null;
+        }
+
         public static PCIDevice GetDeviceClass(ClassID Class, SubclassID SubClass)
         {
             for (int i = 0; i < Devices.Count; i++)
