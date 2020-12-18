@@ -62,7 +62,7 @@ namespace Cosmos.System.Graphics.Fonts
             MAXMODE = 5
         }
 
-        private readonly List<UnicodeMapping> _UnicodeMappings; // Maps the fonts to the corresponding unicode characters
+        public readonly List<UnicodeMapping> _UnicodeMappings; // Maps the fonts to the corresponding unicode characters
 
         public PCScreenFont(byte aWidth, byte aHeight, byte[] aData, List<UnicodeMapping> aUnicodeMappings) : base(aWidth, aHeight, aData)
         {
@@ -117,6 +117,7 @@ namespace Cosmos.System.Graphics.Fonts
                                 UnicodeCharactersWithModifiers = new List<ushort[]>(),
                                 ASCIICharacters = new List<byte>()
                             };
+                            mapping.ASCIICharacters.Add((byte)mapping.FontPosition);
                             for (int i = 0; i < currentEntry.Count / 2; i++)
                             {
                                 mapping.UnicodeCharacters.Add(BitConverter.ToUInt16(currentEntry.ToArray(), i * 2));
