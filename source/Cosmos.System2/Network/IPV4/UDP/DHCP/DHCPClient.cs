@@ -16,7 +16,7 @@ namespace Cosmos.System.Network.IPv4.UDP.DHCP
     /// <summary>
     /// DHCPClient class. Used to manage the DHCP connection to a server.
     /// </summary>
-    class DHCPClient
+    public class DHCPClient
     {
         /// <summary>
         /// Current DHCPClient
@@ -68,7 +68,7 @@ namespace Cosmos.System.Network.IPv4.UDP.DHCP
         /// <param name="packet">Packet to receive.</param>
         /// <exception cref="OverflowException">Thrown on fatal error (contact support).</exception>
         /// <exception cref="Sys.IO.IOException">Thrown on IO error.</exception>
-        public void receiveData(DHCPPacket packet)
+        internal void receiveData(DHCPPacket packet)
         {
             rxBuffer.Enqueue(packet);
         }
