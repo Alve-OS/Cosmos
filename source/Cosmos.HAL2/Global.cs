@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Cosmos.Core;
 using Cosmos.Debug.Kernel;
 using Cosmos.HAL.BlockDevice;
+using Cosmos.HAL.Network;
 
 namespace Cosmos.HAL
 {
@@ -62,6 +63,9 @@ namespace Cosmos.HAL
             IDE.InitDriver();
             AHCI.InitDriver();
             //EHCI.InitDriver();
+
+            mDebugger.Send("Network Devices Init");
+            NetworkInit.Init();
 
             mDebugger.Send("Done initializing Cosmos.HAL.Global");
 

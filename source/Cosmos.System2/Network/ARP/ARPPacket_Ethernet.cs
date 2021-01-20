@@ -1,9 +1,18 @@
-﻿using System;
+﻿/*
+* PROJECT:          Aura Operating System Development
+* CONTENT:          ARP Packet ethernet
+* PROGRAMMERS:      Valentin Charbonnier <valentinbreiz@gmail.com>
+*                   Port of Cosmos Code.
+*/
+
+using System;
+using Cosmos.HAL;
 using Cosmos.HAL.Network;
 using Cosmos.System.Network.ARP;
+using Cosmos.System.Network.IPv4;
 using Sys = System;
 
-namespace Cosmos.System.Network.IPv4
+namespace Cosmos.System.Network.ARP
 {
     /// <summary>
     /// ARPPacket_Ethernet abstract class. See also: <seealso cref="ARPPacket"/>
@@ -53,7 +62,7 @@ namespace Cosmos.System.Network.IPv4
             mSenderIP = new Address(RawData, 28);
             if (SenderIP == null)
             {
-                NetworkStack.debugger.Send("But its already null again");
+                Global.mDebugger.Send("But its already null again");
             }
             mTargetMAC = new MACAddress(RawData, 32);
             mTargetIP = new Address(RawData, 38);
@@ -210,7 +219,7 @@ namespace Cosmos.System.Network.IPv4
         {
             if (SenderIP == null)
             {
-                NetworkStack.debugger.Send("In ARPRequest_Ethernet, SenderIP is null!");
+                Global.mDebugger.Send("In ARPRequest_Ethernet, SenderIP is null!");
             }
         }
 
