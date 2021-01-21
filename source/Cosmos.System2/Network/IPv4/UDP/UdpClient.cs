@@ -15,25 +15,25 @@ namespace Cosmos.System.Network.IPv4.UDP
     /// <summary>
     /// UdpClient class. Used to manage the UDP connection to a client.
     /// </summary>
-    public class UdpClient
+    public class UdpClient : IDisposable
     {
         /// <summary>
         /// Clients dictionary.
         /// </summary>
-        private static TempDictionary<uint, UdpClient> clients;
+        private static Dictionary<uint, UdpClient> clients;
 
         /// <summary>
         /// Local port.
         /// </summary>
-        protected Int32 localPort;
+        protected int localPort;
         /// <summary>
         /// Destination address.
         /// </summary>
-        protected IPv4.Address destination;
+        protected Address destination;
         /// <summary>
         /// Destination port.
         /// </summary>
-        protected Int32 destinationPort;
+        protected int destinationPort;
 
         /// <summary>
         /// RX buffer queue.
@@ -46,7 +46,7 @@ namespace Cosmos.System.Network.IPv4.UDP
         /// <exception cref="ArgumentOutOfRangeException">Thrown on fatal error (contact support).</exception>
         static UdpClient()
         {
-            clients = new TempDictionary<uint, UdpClient>();
+            clients = new Dictionary<uint, UdpClient>();
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Cosmos.System.Network.IPv4.UDP
         /// </summary>
         /// <param name="destPort">Destination port.</param>
         /// <returns>UdpClient</returns>
-        internal static UdpClient Client(ushort destPort)
+        internal static UdpClient GetClient(ushort destPort)
         {
             if (clients.ContainsKey((uint)destPort) == true)
             {
@@ -65,7 +65,7 @@ namespace Cosmos.System.Network.IPv4.UDP
         }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="UdpClient"/> class.
+        /// Create new instance of the <see cref="UdpClient"/> class.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Thrown on fatal error (contact support).</exception>
         /// <exception cref="ArgumentException">Thrown if UdpClient with localPort 0 exists.</exception>
@@ -74,7 +74,7 @@ namespace Cosmos.System.Network.IPv4.UDP
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="UdpClient"/> class.
+        /// Create new instance of the <see cref="UdpClient"/> class.
         /// </summary>
         /// <param name="localPort">Local port.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown on fatal error (contact support).</exception>
@@ -91,7 +91,7 @@ namespace Cosmos.System.Network.IPv4.UDP
         }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="UdpClient"/> class.
+        /// Create new instance of the <see cref="UdpClient"/> class.
         /// </summary>
         /// <param name="dest">Destination address.</param>
         /// <param name="destPort">Destination port.</param>
@@ -139,7 +139,7 @@ namespace Cosmos.System.Network.IPv4.UDP
         {
             if ((destination == null) || (destinationPort == 0))
             {
-                throw new Exception("Must establish a default remote host by calling Connect() before using this Send() overload");
+                throw new InvalidOperationException("Must establish a default remote host by calling Connect() before using this Send() overload");
             }
 
             Send(data, destination, destinationPort);
@@ -175,7 +175,7 @@ namespace Cosmos.System.Network.IPv4.UDP
                 return null;
             }
 
-            UDPPacket packet = new UDPPacket(rxBuffer.Dequeue().RawData);
+            var packet = new UDPPacket(rxBuffer.Dequeue().RawData);
             source.address = packet.SourceIP;
             source.port = packet.SourcePort;
 
@@ -192,7 +192,7 @@ namespace Cosmos.System.Network.IPv4.UDP
         {
             while (rxBuffer.Count < 1) ;
 
-            UDPPacket packet = new UDPPacket(rxBuffer.Dequeue().RawData);
+            var packet = new UDPPacket(rxBuffer.Dequeue().RawData);
             source.address = packet.SourceIP;
             source.port = packet.SourcePort;
 
@@ -205,9 +205,17 @@ namespace Cosmos.System.Network.IPv4.UDP
         /// <param name="packet">Packet to receive.</param>
         /// <exception cref="OverflowException">Thrown on fatal error (contact support).</exception>
         /// <exception cref="Sys.IO.IOException">Thrown on IO error.</exception>
-        internal void receiveData(UDPPacket packet)
+        internal void ReceiveData(UDPPacket packet)
         {
             rxBuffer.Enqueue(packet);
+        }
+
+        /// <summary>
+        /// Close Client
+        /// </summary>
+        public void Dispose()
+        {
+            Close();
         }
     }
 }

@@ -24,18 +24,18 @@ namespace Cosmos.System.Network
     public static class NetworkStack
     {
         /// <summary>
-        /// Debugger inctanse of the "System" ring, with the "NetworkStack" tag.
+        /// Debugger instance of the "System" ring, with the "NetworkStack" tag.
         /// </summary>
         public static Debugger debugger = new Debugger("System", "NetworkStack");
 
         /// <summary>
         /// Get address dictionary.
         /// </summary>
-        internal static TempDictionary<uint, NetworkDevice> AddressMap { get; private set; }
+        internal static Dictionary<uint, NetworkDevice> AddressMap { get; private set; }
         /// <summary>
         /// Get address dictionary.
         /// </summary>
-        internal static TempDictionary<uint, NetworkDevice> MACMap { get; private set; }
+        internal static Dictionary<uint, NetworkDevice> MACMap { get; private set; }
 
         /// <summary>
         /// Initialize the Network Stack to prepare it for operation.
@@ -43,8 +43,8 @@ namespace Cosmos.System.Network
         /// <exception cref="ArgumentOutOfRangeException">Thrown on fatal error (contact support).</exception>
         public static void Init()
         {
-            AddressMap = new TempDictionary<uint, NetworkDevice>();
-            MACMap = new TempDictionary<uint, NetworkDevice>();
+            AddressMap = new Dictionary<uint, NetworkDevice>();
+            MACMap = new Dictionary<uint, NetworkDevice>();
         }
 
         /// <summary>
@@ -97,13 +97,7 @@ namespace Cosmos.System.Network
         /// </summary>
         public static bool ConfigEmpty()
         {
-            int counter = 0;
-
-            foreach (NetworkDevice device in NetworkConfig.Keys)
-            {
-                counter++;
-            }
-            if (counter == 0)
+            if (NetworkConfig.Keys.Count == 0)
             {
                 return true;
             }

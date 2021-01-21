@@ -37,14 +37,14 @@ namespace Cosmos.System.Network.ARP
         protected Address mTargetIP;
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ARPRequest_Ethernet"/> class.
+        /// Create new instance of the <see cref="ARPRequest_Ethernet"/> class.
         /// </summary>
         internal ARPPacket_Ethernet()
             : base()
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ARPRequest_Ethernet"/> class.
+        /// Create new instance of the <see cref="ARPRequest_Ethernet"/> class.
         /// </summary>
         /// <param name="rawData">Raw data.</param>
         internal ARPPacket_Ethernet(byte[] rawData)
@@ -55,9 +55,9 @@ namespace Cosmos.System.Network.ARP
         /// Init ARPPacket_Ethernet fields.
         /// </summary>
         /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-        protected override void initFields()
+        protected override void InitFields()
         {
-            base.initFields();
+            base.InitFields();
             mSenderMAC = new MACAddress(RawData, 22);
             mSenderIP = new Address(RawData, 28);
             if (SenderIP == null)
@@ -69,7 +69,7 @@ namespace Cosmos.System.Network.ARP
         }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ARPRequest_Ethernet"/> class.
+        /// Create new instance of the <see cref="ARPRequest_Ethernet"/> class.
         /// </summary>
         /// <param name="operation">Operation.</param>
         /// <param name="senderMAC">Source MAC address.</param>
@@ -94,7 +94,7 @@ namespace Cosmos.System.Network.ARP
                 RawData[38 + i] = targetIP.address[i];
             }
 
-            initFields();
+            InitFields();
         }
 
         /// <summary>
@@ -146,22 +146,14 @@ namespace Cosmos.System.Network.ARP
     internal class ARPReply_Ethernet : ARPPacket_Ethernet
     {
         /// <summary>
-        /// Work around to make VMT scanner include the initFields method
-        /// </summary>
-        public new static void VMTInclude()
-        {
-            new ARPReply_Ethernet();
-        }
-
-        /// <summary>
-        /// Create new inctanse of the <see cref="ARPReply_Ethernet"/> class.
+        /// Create new instance of the <see cref="ARPReply_Ethernet"/> class.
         /// </summary>
         internal ARPReply_Ethernet()
             : base()
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ARPReply_Ethernet"/> class.
+        /// Create new instance of the <see cref="ARPReply_Ethernet"/> class.
         /// </summary>
         /// <param name="rawData">Raw data.</param>
         internal ARPReply_Ethernet(byte[] rawData)
@@ -169,7 +161,7 @@ namespace Cosmos.System.Network.ARP
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ARPReply_Ethernet"/> class.
+        /// Create new instance of the <see cref="ARPReply_Ethernet"/> class.
         /// </summary>
         /// <param name="ourMAC">Source MAC address.</param>
         /// <param name="ourIP">Source IP address.</param>
@@ -196,22 +188,14 @@ namespace Cosmos.System.Network.ARP
     internal class ARPRequest_Ethernet : ARPPacket_Ethernet
     {
         /// <summary>
-        /// Work around to make VMT scanner include the initFields method
-        /// </summary>
-        public new static void VMTInclude()
-        {
-            new ARPRequest_Ethernet();
-        }
-
-        /// <summary>
-        /// Create new inctanse of the <see cref="ARPRequest_Ethernet"/> class.
+        /// Create new instance of the <see cref="ARPRequest_Ethernet"/> class.
         /// </summary>
         internal ARPRequest_Ethernet()
             : base()
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ARPRequest_Ethernet"/> class.
+        /// Create new instance of the <see cref="ARPRequest_Ethernet"/> class.
         /// </summary>
         /// <param name="rawData">Raw data.</param>
         internal ARPRequest_Ethernet(byte[] rawData)
@@ -224,7 +208,7 @@ namespace Cosmos.System.Network.ARP
         }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ARPRequest_Ethernet"/> class.
+        /// Create new instance of the <see cref="ARPRequest_Ethernet"/> class.
         /// </summary>
         /// <param name="ourMAC">Source MAC address.</param>
         /// <param name="ourIP">Source IP address.</param>

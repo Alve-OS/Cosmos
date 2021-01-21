@@ -92,22 +92,14 @@ namespace Cosmos.System.Network.ARP
         }
 
         /// <summary>
-        /// Work around to make VMT scanner include the initFields method
-        /// </summary>
-        public static void VMTInclude()
-        {
-            new ARPPacket();
-        }
-
-        /// <summary>
-        /// Create new inctanse of the <see cref="ARPPacket"/> class.
+        /// Create new instance of the <see cref="ARPPacket"/> class.
         /// </summary>
         internal ARPPacket()
             : base()
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ARPPacket"/> class.
+        /// Create new instance of the <see cref="ARPPacket"/> class.
         /// </summary>
         /// <param name="rawData">Raw data.</param>
         public ARPPacket(byte[] rawData)
@@ -117,9 +109,9 @@ namespace Cosmos.System.Network.ARP
         /// <summary>
         /// Init ARPPacket fields.
         /// </summary>
-        protected override void initFields()
+        protected override void InitFields()
         {
-            base.initFields();
+            base.InitFields();
             aHardwareType = (ushort)((RawData[14] << 8) | RawData[15]);
             aProtocolType = (ushort)((RawData[16] << 8) | RawData[17]);
             aHardwareLen = RawData[18];
@@ -128,7 +120,7 @@ namespace Cosmos.System.Network.ARP
         }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ARPPacket"/> class.
+        /// Create new instance of the <see cref="ARPPacket"/> class.
         /// </summary>
         /// <param name="dest">Destination MAC address.</param>
         /// <param name="src">Source MAC address.</param>
@@ -151,7 +143,7 @@ namespace Cosmos.System.Network.ARP
             RawData[20] = (byte)(operation >> 8);
             RawData[21] = (byte)(operation >> 0);
 
-            initFields();
+            InitFields();
         }
 
         /// <summary>

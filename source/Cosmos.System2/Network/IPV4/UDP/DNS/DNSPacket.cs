@@ -61,30 +61,22 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
         {
             DNSPacket dns_packet = new DNSPacket(packetData);
 
-            DnsClient receiver = (DnsClient)UdpClient.Client(dns_packet.DestinationPort);
+            DnsClient receiver = (DnsClient)UdpClient.GetClient(dns_packet.DestinationPort);
             if (receiver != null)
             {
-                receiver.receiveData(dns_packet);
+                receiver.ReceiveData(dns_packet);
             }
         }
 
         /// <summary>
-        /// Work around to make VMT scanner include the initFields method
-        /// </summary>
-        public static void VMTInclude()
-        {
-            new DNSPacket();
-        }
-
-        /// <summary>
-        /// Create new inctanse of the <see cref="DNSPacket"/> class.
+        /// Create new instance of the <see cref="DNSPacket"/> class.
         /// </summary>
         internal DNSPacket()
             : base()
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="DNSPacket"/> class.
+        /// Create new instance of the <see cref="DNSPacket"/> class.
         /// </summary>
         /// <param name="rawData">Raw data.</param>
         public DNSPacket(byte[] rawData)
@@ -92,7 +84,7 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="UDPPacket"/> class.
+        /// Create new instance of the <see cref="UDPPacket"/> class.
         /// </summary>
         /// <param name="source">Source address.</param>
         /// <param name="dest">Destination address.</param>
@@ -123,16 +115,16 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
             RawData[this.DataOffset + 18] = (byte)((0 >> 8) & 0xFF);
             RawData[this.DataOffset + 19] = (byte)((0 >> 0) & 0xFF);
 
-            initFields();
+            InitFields();
         }
 
         /// <summary>
         /// Init DNSPacket fields.
         /// </summary>
         /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-        protected override void initFields()
+        protected override void InitFields()
         {
-            base.initFields();
+            base.InitFields();
             TransactionID = (UInt16)((RawData[this.DataOffset + 8] << 8) | RawData[this.DataOffset + 9]);
             DNSFlags = (UInt16)((RawData[this.DataOffset + 10] << 8) | RawData[this.DataOffset + 11]);
             Questions = (UInt16)((RawData[this.DataOffset + 12] << 8) | RawData[this.DataOffset + 13]);
@@ -146,7 +138,7 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
         /// </summary>
         /// <param name="RawData">Data</param>
         /// <param name="index">Data offset</param>
-        public string parseName(byte[] RawData, ref int index)
+        public string ParseName(byte[] RawData, ref int index)
         {
             StringBuilder url = new StringBuilder();
 
@@ -222,22 +214,14 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
     public class DNSPacketAsk : DNSPacket
     {
         /// <summary>
-        /// Work around to make VMT scanner include the initFields method
-        /// </summary>
-        public static void VMTInclude()
-        {
-            new DNSPacketAsk();
-        }
-
-        /// <summary>
-        /// Create new inctanse of the <see cref="DNSPacketAsk"/> class.
+        /// Create new instance of the <see cref="DNSPacketAsk"/> class.
         /// </summary>
         internal DNSPacketAsk()
             : base()
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="DNSPacketAsk"/> class.
+        /// Create new instance of the <see cref="DNSPacketAsk"/> class.
         /// </summary>
         /// <param name="rawData">Raw data.</param>
         public DNSPacketAsk(byte[] rawData)
@@ -245,7 +229,7 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="UDPPacket"/> class.
+        /// Create new instance of the <see cref="UDPPacket"/> class.
         /// </summary>
         /// <param name="source">Source address.</param>
         /// <param name="dest">DNS Server address.</param>
@@ -280,15 +264,6 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
             RawData[this.DataOffset + 20 + b + 3] = 0x00;
             RawData[this.DataOffset + 20 + b + 4] = 0x01;
         }
-
-        /// <summary>
-        /// Init DNSPacketAsk fields.
-        /// </summary>
-        /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-        protected override void initFields()
-        {
-            base.initFields();
-        }
     }
 
     /// <summary>
@@ -297,22 +272,14 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
     public class DNSPacketAnswer : DNSPacket
     {
         /// <summary>
-        /// Work around to make VMT scanner include the initFields method
-        /// </summary>
-        public static void VMTInclude()
-        {
-            new DNSPacketAnswer();
-        }
-
-        /// <summary>
-        /// Create new inctanse of the <see cref="DNSPacketAnswer"/> class.
+        /// Create new instance of the <see cref="DNSPacketAnswer"/> class.
         /// </summary>
         internal DNSPacketAnswer()
             : base()
         { }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="DNSPacketAnswer"/> class.
+        /// Create new instance of the <see cref="DNSPacketAnswer"/> class.
         /// </summary>
         /// <param name="rawData">Raw data.</param>
         public DNSPacketAnswer(byte[] rawData)
@@ -323,9 +290,9 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
         /// Init DNSPacketAnswer fields.
         /// </summary>
         /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-        protected override void initFields()
+        protected override void InitFields()
         {
-            base.initFields();
+            base.InitFields();
 
             if ((ushort)(DNSFlags & 0x0F) != (ushort)ReplyCode.OK)
             {
@@ -341,7 +308,7 @@ namespace Cosmos.System.Network.IPv4.UDP.DNS
                 for (int i = 0; i < Questions; i++)
                 {
                     DNSQuery query = new DNSQuery();
-                    query.Name = parseName(RawData, ref index);
+                    query.Name = ParseName(RawData, ref index);
                     query.Type = (ushort)((RawData[index + 0] << 8) | RawData[index + 1]);
                     query.Class = (ushort)((RawData[index + 2] << 8) | RawData[index + 3]);
                     Queries.Add(query);

@@ -16,12 +16,12 @@ namespace Cosmos.System.Network.IPv4
     /// <summary>
     /// ICMPClient class. Used to manage the ICMP connection to a client.
     /// </summary>
-    public class ICMPClient
+    public class ICMPClient : IDisposable
     {
         /// <summary>
         /// Clients dictionary.
         /// </summary>
-        private static TempDictionary<uint, ICMPClient> clients;
+        private static Dictionary<uint, ICMPClient> clients;
 
         /// <summary>
         /// Destination address.
@@ -39,7 +39,7 @@ namespace Cosmos.System.Network.IPv4
         /// <exception cref="ArgumentOutOfRangeException">Thrown on fatal error (contact support).</exception>
         static ICMPClient()
         {
-            clients = new TempDictionary<uint, ICMPClient>();
+            clients = new Dictionary<uint, ICMPClient>();
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Cosmos.System.Network.IPv4
         /// </summary>
         /// <param name="iphash">IP Hash.</param>
         /// <returns>ICMPClient</returns>
-        internal static ICMPClient Client(uint iphash)
+        internal static ICMPClient GetClient(uint iphash)
         {
             if (clients.ContainsKey(iphash) == true)
             {
@@ -58,7 +58,7 @@ namespace Cosmos.System.Network.IPv4
         }
 
         /// <summary>
-        /// Create new inctanse of the <see cref="ICMPClient"/> class.
+        /// Create new instance of the <see cref="ICMPClient"/> class.
         /// </summary>
         public ICMPClient()
         {
@@ -135,9 +135,17 @@ namespace Cosmos.System.Network.IPv4
         /// <param name="packet">Packet to receive.</param>
         /// <exception cref="OverflowException">Thrown on fatal error (contact support).</exception>
         /// <exception cref="Sys.IO.IOException">Thrown on IO error.</exception>
-        public void receiveData(ICMPPacket packet)
+        public void ReceiveData(ICMPPacket packet)
         {
             rxBuffer.Enqueue(packet);
+        }
+
+        /// <summary>
+        /// Close Client
+        /// </summary>
+        public void Dispose()
+        {
+            Close();
         }
     }
 }
